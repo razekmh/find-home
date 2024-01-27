@@ -1,8 +1,29 @@
 from SPARQLWrapper import SPARQLWrapper, JSON
 
-def main():
-    sparql_endpoint = "http://landregistry.data.gov.uk/landregistry/query"
-    sparql = SPARQLWrapper(sparql_endpoint)
+sparql_endpoint = "http://landregistry.data.gov.uk/landregistry/query"
+sparql = SPARQLWrapper(sparql_endpoint)
+
+def count_transactions_by_town(town_name):
+    sparql.setQuery(
+        f"""
+        PREFIX lrppi: <http://landregistry.data.gov.uk/def/ppi/>
+        PREFIX lrcommon: <http://landregistry.data.gov.uk/def/common/>
+        
+        SELECT (COUNT(?transx) AS ?count)
+        WHERE {{
+            ?transx lrppi:propertyAddress ?addr .
+            ?addr lrcommon:town ?town .
+            FILTER(?town = "{town_name}")
+        }}
+        """
+    )
+    sparql.setReturnFormat(JSON)
+    results = sparql.query().convert()
+    return(results["results"]["bindings"][0]["count"]["value"])
+
+
+def base_query():
+     
     sparql.setQuery(
         """
         PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -28,9 +49,10 @@ def main():
     )
     sparql.setReturnFormat(JSON)
     results = sparql.query().convert()
-    print(results)
-    # for result in results["results"]["bindings"]:
-    #     print(result)
+    yield results["results"]["bindings"]
+
+def main():
+    print(count_transactions_by_town("LONDON"))
     
 if __name__ == "__main__":
     main()
