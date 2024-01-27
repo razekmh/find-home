@@ -1,14 +1,16 @@
 from SPARQLWrapper import SPARQLWrapper, JSON
+from typing import Generator
 
 sparql_endpoint = "http://landregistry.data.gov.uk/landregistry/query"
 sparql = SPARQLWrapper(sparql_endpoint)
 
-def count_transactions_by_town(town_name):
+
+def count_transactions_by_town(town_name: str) -> int:
     sparql.setQuery(
         f"""
         PREFIX lrppi: <http://landregistry.data.gov.uk/def/ppi/>
         PREFIX lrcommon: <http://landregistry.data.gov.uk/def/common/>
-        
+
         SELECT (COUNT(?transx) AS ?count)
         WHERE {{
             ?transx lrppi:propertyAddress ?addr .
@@ -19,17 +21,16 @@ def count_transactions_by_town(town_name):
     )
     sparql.setReturnFormat(JSON)
     results = sparql.query().convert()
-    return(results["results"]["bindings"][0]["count"]["value"])
+    return results["results"]["bindings"][0]["count"]["value"]
 
 
-def base_query():
-     
+def base_query() -> Generator:
     sparql.setQuery(
         """
         PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
         PREFIX lrppi: <http://landregistry.data.gov.uk/def/ppi/>
         PREFIX lrcommon: <http://landregistry.data.gov.uk/def/common/>
-        
+
         SELECT (COUNT(?transx) AS ?count)
         # SELECT ?paon ?saon ?street ?town ?county ?postcode ?amount ?date
         WHERE {
@@ -51,8 +52,10 @@ def base_query():
     results = sparql.query().convert()
     yield results["results"]["bindings"]
 
-def main():
+
+def main() -> None:
     print(count_transactions_by_town("LONDON"))
-    
+
+
 if __name__ == "__main__":
     main()
