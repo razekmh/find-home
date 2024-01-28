@@ -1,2 +1,4 @@
 findhomeenv/*
 node_modules/*
+.mypy_cache/*
+```
